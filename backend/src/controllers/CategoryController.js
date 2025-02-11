@@ -7,7 +7,7 @@ export const getAllCategories = async (req, res) => {
     if (!(category || category.length)) {
       return res.status(404).json({ message: "Không tìm thấy danh mục" });
     }
-    return res.status(200).json({
+    return res.status(201).json({
       message: "Lấy danh mục thành công",
       data: category,
     });
@@ -26,7 +26,7 @@ export const getCategoryById = async (req, res) => {
     if (!category) {
       return res.status(404).json({ message: "Không tìm thấy danh mục" });
     }
-    return res.status(200).json({
+    return res.status(201).json({
       message: "Lấy danh mục thành công",
       data: category,
     });
