@@ -1,78 +1,100 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { getProductById, updateProduct } from "../../../services/admin/product";
+import { getAllNXB } from "../../../services/admin/nxb";
 import { getCategories } from "../../../services/admin/category";
 import { getAuthors } from "../../../services/admin/author";
-import { getAllNXB } from "../../../services/admin/nxb";
-import { createProduct } from "../../../services/admin/product";
 import { Author, Category, NXB } from "../../../models/Product";
 
-const AddProduct = () => {
-  const [product_name, setProductName] = useState("");
-  const [price, setPrice] = useState();
-  const [stock, setStock] = useState(1);
-  const [categoryId, setCategoryId] = useState("");
-  const [authorId, setAuthorId] = useState("");
-  const [nxbId, setNxbId] = useState("");
+const EditProduct = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState({
+    product_name: "",
+    thumbnail: "",
+    short_description: "",
+    description: "",
+    sell_count: 0,
+    view: 0,
+    price: 0,
+    stock: 1,
+    images: [],
+    category_id: "",
+    author_id: "",
+    nxb_id: "",
+    star: [],
+    comment: [],
+    isDeleted: false,
+  });
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
-  const [nxbList, setNxbList] = useState<NXB[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [nxbs, setNxbs] = useState<NXB[]>([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Lấy danh sách categories, authors, nxb
     const fetchData = async () => {
-      try {
-        const categoriesData = await getCategories();
-        const authorsData = await getAuthors();
-        const nxbData = await getAllNXB();
-        setCategories(categoriesData.data);
-        setAuthors(authorsData.data);
-        setNxbList(nxbData.data);
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
-      }
+      const productData = await getProductById(id);
+      setProduct({
+        ...productData,
+        product_name: productData.data.product_name || "",
+        price: productData.data.price || 0,
+        stock: productData.data.stock || 1,
+        category_id: productData.data.category_id?._id || "",
+        author_id: productData.data.author_id?._id || "",
+        nxb_id: productData.data.nxb_id?._id || "",
+      });
+      const categoryData = await getCategories();
+      const authorData = await getAuthors();
+      const nxbData = await getAllNXB();
+      setCategories(categoryData.data);
+      setAuthors(authorData.data);
+      setNxbs(nxbData.data);
     };
     fetchData();
-  }, []);
+  }, [id]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProduct((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!product_name.trim() || price <= 0 || stock < 0) {
-      setError("Vui lòng nhập đầy đủ thông tin sản phẩm hợp lệ.");
+    // Kiểm tra dữ liệu đầu vào hợp lệ
+    if (
+      !product.product_name.trim() ||
+      product.price <= 0 ||
+      product.stock < 0
+    ) {
+      setError("Vui lòng nhập đầy đủ và chính xác thông tin sản phẩm.");
       return;
     }
 
     try {
-      await createProduct({
-        product_name,
-        price,
-        stock,
-        category_id: categoryId,
-        author_id: authorId,
-        nxb_id: nxbId,
-      });
-      alert("Thêm sản phẩm thành công!");
+      await updateProduct(id, product);
+      alert("Cập nhật sản phẩm thành công!");
       navigate("/admin/product");
     } catch (error) {
-      setError("Lỗi khi thêm sản phẩm!");
+      setError("Cập nhật sản phẩm thất bại. Vui lòng thử lại!");
     }
   };
 
   return (
     <div className="container mt-4">
-      <h3 className="text-center text-decoration-underline">Thêm Sản Phẩm</h3>
+      <h3 className="text-center text-decoration-underline">
+        Chỉnh Sửa Sản Phẩm
+      </h3>
       <form onSubmit={handleSubmit} className="w-50 mx-auto mt-4">
         <div className="mb-3">
           <label className="form-label">Tên sản phẩm:</label>
           <input
             type="text"
             className="form-control"
-            placeholder="Nhập tên sản phẩm..."
-            value={product_name}
-            onChange={(e) => setProductName(e.target.value)}
+            name="product_name"
+            value={product.product_name}
+            onChange={handleChange}
           />
         </div>
 
@@ -81,8 +103,9 @@ const AddProduct = () => {
           <input
             type="number"
             className="form-control"
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
+            name="price"
+            value={product.price}
+            onChange={handleChange}
           />
         </div>
 
@@ -91,18 +114,19 @@ const AddProduct = () => {
           <input
             type="number"
             className="form-control"
-            value={stock}
-            onChange={(e) => setStock(Number(e.target.value))}
+            name="stock"
+            value={product.stock}
+            onChange={handleChange}
           />
         </div>
 
-        {/* Dropdown chọn Category */}
         <div className="mb-3">
           <label className="form-label">Danh mục:</label>
           <select
             className="form-select"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+            name="category_id"
+            value={product.category_id}
+            onChange={handleChange}
           >
             <option value="">Chọn danh mục</option>
             {categories.map((category) => (
@@ -113,13 +137,13 @@ const AddProduct = () => {
           </select>
         </div>
 
-        {/* Dropdown chọn Author */}
         <div className="mb-3">
           <label className="form-label">Tác giả:</label>
           <select
             className="form-select"
-            value={authorId}
-            onChange={(e) => setAuthorId(e.target.value)}
+            name="author_id"
+            value={product.author_id}
+            onChange={handleChange}
           >
             <option value="">Chọn tác giả</option>
             {authors.map((author) => (
@@ -130,16 +154,16 @@ const AddProduct = () => {
           </select>
         </div>
 
-        {/* Dropdown chọn Nhà xuất bản */}
         <div className="mb-3">
           <label className="form-label">Nhà xuất bản:</label>
           <select
             className="form-select"
-            value={nxbId}
-            onChange={(e) => setNxbId(e.target.value)}
+            name="nxb_id"
+            value={product.nxb_id}
+            onChange={handleChange}
           >
             <option value="">Chọn NXB</option>
-            {nxbList.map((nxb) => (
+            {nxbs.map((nxb) => (
               <option key={nxb._id} value={nxb._id}>
                 {nxb.nxb_name}
               </option>
@@ -151,7 +175,7 @@ const AddProduct = () => {
 
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary">
-            Thêm Sản Phẩm
+            Cập Nhật
           </button>
           <button
             type="button"
@@ -166,4 +190,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct;
+export default EditProduct;

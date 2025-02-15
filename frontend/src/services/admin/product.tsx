@@ -36,7 +36,7 @@ export const createProduct = async (product: Product) => {
 // Cập nhật thông tin sản phẩm
 export const updateProduct = async (id: string | number, product: Product) => {
   try {
-    const { data } = await instance.put(`products/${id}`, product);
+    const { data } = await instance.patch(`products/${id}`, product);
     return data;
   } catch (error) {
     console.log("Lỗi khi cập nhật sản phẩm:", error);

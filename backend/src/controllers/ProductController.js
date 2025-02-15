@@ -101,6 +101,8 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
+    const { categoryId, authorId, nxbId, ...updateData } = req.body;
+
     // Lấy thông tin sản phẩm trước khi cập nhật
     const oldProduct = await ProductModel.findById(req.params.id);
     if (!oldProduct) {
@@ -110,39 +112,55 @@ export const updateProduct = async (req, res) => {
     // Cập nhật sản phẩm
     const product = await ProductModel.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { categoryId, authorId, nxbId, ...updateData },
       { new: true }
     );
 
-    // Nếu danh mục thay đổi, cập nhật lại danh mục
-    if (oldProduct.categoryId.toString() !== product.categoryId.toString()) {
-      await CategoryModel.findByIdAndUpdate(oldProduct.categoryId, {
-        $pull: { products: product._id },
-      });
-      await CategoryModel.findByIdAndUpdate(product.categoryId, {
-        $push: { products: product._id },
-      });
+    if (!product) {
+      return res.status(400).json({ message: "Cập nhật sản phẩm thất bại" });
     }
 
-    // Nếu tác giả thay đổi, cập nhật lại tác giả
-    if (oldProduct.authorId.toString() !== product.authorId.toString()) {
-      await AuthorModel.findByIdAndUpdate(oldProduct.authorId, {
-        $pull: { products: product._id },
-      });
-      await AuthorModel.findByIdAndUpdate(product.authorId, {
-        $push: { products: product._id },
-      });
-    }
+    // Danh mục thay đổi
+    const updateCategory =
+      categoryId && oldProduct.categoryId?.toString() !== categoryId.toString()
+        ? [
+            CategoryModel.findByIdAndUpdate(oldProduct.categoryId, {
+              $pull: { products: product._id },
+            }),
+            CategoryModel.findByIdAndUpdate(categoryId, {
+              $push: { products: product._id },
+            }),
+          ]
+        : [];
 
-    // Nếu nhà xuất bản thay đổi, cập nhật lại NXB
-    if (oldProduct.nxbId.toString() !== product.nxbId.toString()) {
-      await NXBModel.findByIdAndUpdate(oldProduct.nxbId, {
-        $pull: { products: product._id },
-      });
-      await NXBModel.findByIdAndUpdate(product.nxbId, {
-        $push: { products: product._id },
-      });
-    }
+    // Tác giả thay đổi
+    const updateAuthor =
+      authorId && oldProduct.authorId?.toString() !== authorId.toString()
+        ? [
+            AuthorModel.findByIdAndUpdate(oldProduct.authorId, {
+              $pull: { products: product._id },
+            }),
+            AuthorModel.findByIdAndUpdate(authorId, {
+              $push: { products: product._id },
+            }),
+          ]
+        : [];
+
+    // Nhà xuất bản thay đổi
+    const updateNXB =
+      nxbId && oldProduct.nxbId?.toString() !== nxbId.toString()
+        ? [
+            NXBModel.findByIdAndUpdate(oldProduct.nxbId, {
+              $pull: { products: product._id },
+            }),
+            NXBModel.findByIdAndUpdate(nxbId, {
+              $push: { products: product._id },
+            }),
+          ]
+        : [];
+
+    // Chạy song song các cập nhật
+    await Promise.all([...updateCategory, ...updateAuthor, ...updateNXB]);
 
     return res.status(200).json({
       message: "Cập nhật sản phẩm thành công",

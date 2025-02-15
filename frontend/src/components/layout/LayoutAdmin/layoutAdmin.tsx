@@ -27,7 +27,7 @@ const LayoutAdmin = () => {
       icon: <IoColorPaletteOutline />,
       label: "Tác giả",
     },
-    { path: "/admin/size", icon: <CgSize />, label: "Kích cỡ" },
+    { path: "/admin/nxb", icon: <CgSize />, label: "NXB" },
     {
       path: "/admin/vouchers",
       icon: <RiDiscountPercentFill />,
