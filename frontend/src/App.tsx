@@ -20,6 +20,7 @@ import LayoutClient from "./components/layout/LayoutClient/LayoutClient";
 import { ToastContainer } from "react-toastify";
 import ListUser from "./pages/admins/user/ListUser";
 import AuthAdmin from "./pages/admins/AuthAdmin";
+import AuthCustomer from "./pages/clients/AuthCustomer";
 
 function App() {
   return (
@@ -29,8 +30,8 @@ function App() {
           <Route path="/" index element={<Home />} />
           <Route path="/products" element={<AllProducts />} />
           {/* <Route path="/register" element={<Register />} /> */}
-          {/* <Route path="/login" element={<Login />} /> */}
-          <Route path="/login" element={<AuthAdmin />} />
+          <Route path="/customer/auth" element={<AuthCustomer />} />
+          <Route path="/auth" element={<AuthAdmin />} />
         </Route>
         <Route path="/admin" element={<LayoutAdmin />}>
           <Route path="/admin/product" element={<ListProduct />} />

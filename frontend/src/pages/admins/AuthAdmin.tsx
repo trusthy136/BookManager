@@ -15,7 +15,7 @@ const AuthAdmin: React.FC = () => {
     address: "",
     // gender: "male",
     // birthday: "",
-    role: "admin",
+    role: "",
   });
 
   const handleChange = (
@@ -82,7 +82,7 @@ const AuthAdmin: React.FC = () => {
                       required
                     />
                   </div>
-                  {/* <div className="mb-3">
+                  <div className="mb-3">
                     <label className="form-label">Giới tính</label>
                     <select
                       name="gender"
@@ -92,8 +92,8 @@ const AuthAdmin: React.FC = () => {
                       <option value="male">Nam</option>
                       <option value="female">Nữ</option>
                     </select>
-                  </div> */}
-                  {/* <div className="mb-3">
+                  </div>
+                  <div className="mb-3">
                     <label className="form-label">Ngày sinh</label>
                     <input
                       type="date"
@@ -102,7 +102,7 @@ const AuthAdmin: React.FC = () => {
                       onChange={handleChange}
                       required
                     />
-                  </div> */}
+                  </div>
                 </>
               )}
               <div className="mb-3">
